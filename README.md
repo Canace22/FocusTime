@@ -59,18 +59,29 @@ The build files will be generated in the `build` directory.
 
 ### GitHub Pages
 
-The project includes GitHub Actions workflows for automatic deployment:
+The project includes GitHub Actions workflows for automatic deployment using the official GitHub Pages actions.
+
+#### Setup Steps:
 
 1. **Enable GitHub Pages**:
-   - Go to repository Settings → Pages
-   - Select source: "GitHub Actions"
+   - Go to your repository: https://github.com/Canace22/FocusTime
+   - Navigate to **Settings** → **Pages**
+   - Under "Source", select **"GitHub Actions"** (not "Deploy from a branch")
+   - Save the settings
 
 2. **Automatic Deployment**:
    - The `deploy.yml` workflow automatically deploys to GitHub Pages on every push to `main` branch
-   - Your app will be available at: `https://canace22.github.io/FocusTime`
+   - After the first successful deployment, your app will be available at:
+     - **https://canace22.github.io/FocusTime**
 
 3. **Manual Deployment**:
-   - You can also trigger deployment manually from the Actions tab
+   - Go to the **Actions** tab in your repository
+   - Select "Deploy to GitHub Pages" workflow
+   - Click "Run workflow" → "Run workflow" button
+
+4. **Check Deployment Status**:
+   - View the deployment progress in the **Actions** tab
+   - Once complete, the deployment URL will be shown in the workflow summary
 
 ### Other Platforms
 
@@ -153,8 +164,11 @@ The project includes GitHub Actions workflows:
   - Uploads build artifacts
 
 - **Deploy Workflow** (`.github/workflows/deploy.yml`):
+  - Uses official GitHub Pages actions (`actions/deploy-pages@v4`)
   - Automatically deploys to GitHub Pages on push to `main`
-  - Can be triggered manually via workflow_dispatch
+  - Can be triggered manually via `workflow_dispatch`
+  - Includes proper permissions and environment configuration
+  - Supports concurrent deployment management
 
 ## 📝 Development Notes
 
