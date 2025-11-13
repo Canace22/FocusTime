@@ -14,22 +14,43 @@ This directory contains GitHub Actions workflows for CI/CD and deployment.
 ### Deploy (`deploy.yml`)
 - Runs on push to `main` branch or manual trigger
 - Builds the React app
-- Deploys to GitHub Pages automatically
+- Deploys to GitHub Pages automatically using **GitHub Actions as the source**
 
 ## Setup Instructions
 
-1. **Enable GitHub Pages**:
-   - Go to repository Settings → Pages
-   - Under "Source", select "GitHub Actions"
+### 1. Enable GitHub Pages with GitHub Actions Source
 
-2. **First Deployment**:
-   - Push to `main` branch or manually trigger the workflow
-   - The workflow will automatically deploy to GitHub Pages
-   - Your app will be available at: `https://canace22.github.io/FocusTime`
+**Important**: You must set GitHub Pages source to GitHub Actions:
 
-3. **Automatic Deployments**:
-   - Every push to `main` will trigger a new deployment
-   - Check the Actions tab to see deployment status
+1. Go to repository Settings → Pages
+2. Under "Source" section, select **"GitHub Actions"** (not "Deploy from a branch")
+3. Save the settings
+
+### 2. First Deployment
+
+1. Push code to `main` branch, or manually trigger the workflow
+2. The workflow will automatically build and deploy to GitHub Pages
+3. Your app will be available at: `https://canace22.github.io/FocusTime`
+
+### 3. Automatic Deployments
+
+- Every push to `main` branch will trigger a new deployment
+- Check deployment status in the Actions tab
+- GitHub Pages will automatically update after deployment completes
+
+## Workflow Details
+
+### CI Workflow
+- Tests on multiple Node.js versions in parallel
+- Runs linter and tests
+- Builds the project and saves artifacts
+
+### Deploy Workflow
+- Uses Node.js 20.x
+- Installs dependencies and builds production version
+- Uses `actions/configure-pages@v4` to configure Pages
+- Uses `actions/upload-pages-artifact@v3` to upload build artifacts
+- Uses `actions/deploy-pages@v4` to deploy to GitHub Pages
 
 ## Permissions
 
@@ -39,4 +60,12 @@ The deploy workflow requires the following permissions:
 - `id-token: write` - Required for OIDC authentication
 
 These are automatically granted when using GitHub Actions.
+
+## Troubleshooting
+
+If deployment fails, check:
+1. Whether GitHub Pages source is set to "GitHub Actions"
+2. Whether GitHub Pages is enabled in repository settings
+3. Error messages in the Actions tab
+4. Whether the build completed successfully
 
