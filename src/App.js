@@ -200,13 +200,8 @@ export default function DevFocusTimer() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-8">
       <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2">Focus Timer for Devs</h1>
-          <p className="text-slate-400">Beat distractions, ship features</p>
-        </div>
-
         {/* Mode Selector */}
-        <div className="flex gap-3 mb-8 justify-center">
+        <div className="flex gap-3 mb-8">
           {Object.entries(modes).map(([key, { label, icon: Icon, color }]) => (
             <button
               key={key}
