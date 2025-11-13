@@ -1,7 +1,8 @@
 {
   "name": "focus-timer",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
+  "homepage": "https://canace22.github.io/FocusTime",
   "dependencies": {
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
