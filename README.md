@@ -55,6 +55,30 @@ npm run build
 
 The build files will be generated in the `build` directory.
 
+## 🚀 Deployment
+
+### GitHub Pages
+
+The project includes GitHub Actions workflows for automatic deployment:
+
+1. **Enable GitHub Pages**:
+   - Go to repository Settings → Pages
+   - Select source: "GitHub Actions"
+
+2. **Automatic Deployment**:
+   - The `deploy.yml` workflow automatically deploys to GitHub Pages on every push to `main` branch
+   - Your app will be available at: `https://canace22.github.io/FocusTime`
+
+3. **Manual Deployment**:
+   - You can also trigger deployment manually from the Actions tab
+
+### Other Platforms
+
+You can deploy the `build` folder to any static hosting service:
+- **Vercel**: `vercel --prod`
+- **Netlify**: Drag and drop the `build` folder
+- **Cloudflare Pages**: Connect your GitHub repository
+
 ## 🛠️ Tech Stack
 
 - **React 19.2** - UI Framework
@@ -118,6 +142,19 @@ All data is stored in the browser's localStorage with the key `devFocusTimerData
 ```bash
 npm test
 ```
+
+## 🔄 CI/CD
+
+The project includes GitHub Actions workflows:
+
+- **CI Workflow** (`.github/workflows/ci.yml`):
+  - Runs tests on Node.js 18.x and 20.x
+  - Builds the project
+  - Uploads build artifacts
+
+- **Deploy Workflow** (`.github/workflows/deploy.yml`):
+  - Automatically deploys to GitHub Pages on push to `main`
+  - Can be triggered manually via workflow_dispatch
 
 ## 📝 Development Notes
 
