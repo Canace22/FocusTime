@@ -1,20 +1,16 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Pause, RotateCcw, Coffee, Code, Zap } from 'lucide-react';
+import { Play, Pause, RotateCcw, Coffee, Code, Zap, CheckCircle } from 'lucide-react';
 
-// localStorage key
 const STORAGE_KEY = 'devFocusTimerData';
 
-// 获取今天的日期字符串
 const getTodayKey = () => new Date().toDateString();
 
-// 从localStorage加载数据
 const loadData = () => {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const data = JSON.parse(saved);
       const todayKey = getTodayKey();
-      // 如果是今天的数据，返回；否则返回空数据
       if (data.date === todayKey) {
         return data;
       }
@@ -25,13 +21,12 @@ const loadData = () => {
   return {
     date: getTodayKey(),
     sessions: 0,
-    focusTime: 0, // 总专注时间（秒）
-    deepworkTime: 0, // 深度工作时间（秒）
+    focusTime: 0,
+    deepworkTime: 0,
     distractions: []
   };
 };
 
-// 保存数据到localStorage
 const saveData = (data) => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -40,37 +35,37 @@ const saveData = (data) => {
   }
 };
 
-// 模式配置（移到组件外部，避免每次渲染重新创建）
 const modes = {
   short: { duration: 15 * 60, label: 'Short Focus', icon: Code, color: 'bg-cyan-500' },
   focus: { duration: 25 * 60, label: 'Focus Block', icon: Code, color: 'bg-blue-500' },
   break: { duration: 5 * 60, label: 'Break', icon: Coffee, color: 'bg-green-500' },
-  deepwork: { duration: 90 * 60, label: 'Deep Work', icon: Zap, color: 'bg-purple-500' }
+  deepwork: { duration: 60 * 60, label: 'Deep Work', icon: Zap, color: 'bg-purple-500' }
 };
 
 export default function DevFocusTimer() {
-  const [mode, setMode] = useState('focus'); // focus, break, deepwork
+  const [mode, setMode] = useState('focus');
   const [timeLeft, setTimeLeft] = useState(25 * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [sessions, setSessions] = useState(0);
   const [currentTask, setCurrentTask] = useState('');
   const [distractions, setDistractions] = useState([]);
-  const [focusTime, setFocusTime] = useState(0); // 总专注时间（秒）
-  const [deepworkTime, setDeepworkTime] = useState(0); // 深度工作时间（秒）
+  const [focusTime, setFocusTime] = useState(0);
+  const [deepworkTime, setDeepworkTime] = useState(0);
+  const [hasProgress, setHasProgress] = useState(false);
   const intervalRef = useRef(null);
-  const startTimeRef = useRef(null); // 记录开始时间
-  const initialTimeRef = useRef(null); // 记录初始时间
+  const startTimeRef = useRef(null);
+  const initialTimeRef = useRef(null);
+  const prevIsRunningRef = useRef(false);
 
-  // 初始化时加载数据
   useEffect(() => {
     const data = loadData();
-    setSessions(data.sessions);
-    setFocusTime(data.focusTime);
-    setDeepworkTime(data.deepworkTime);
-    setDistractions(data.distractions || []);
+    const { sessions, focusTime, deepworkTime, distractions } = data;
+    setSessions(sessions);
+    setFocusTime(focusTime);
+    setDeepworkTime(deepworkTime);
+    setDistractions(distractions || []);
   }, []);
 
-  // 保存数据到localStorage
   useEffect(() => {
     const data = {
       date: getTodayKey(),
@@ -85,46 +80,124 @@ export default function DevFocusTimer() {
   const handleTimerComplete = useCallback(() => {
     setIsRunning(false);
     if (mode === 'focus' || mode === 'short') {
-      // 记录完成的focus时间（使用初始时间，因为已经完成）
       const completedTime = initialTimeRef.current || modes[mode].duration;
       setFocusTime(prev => prev + completedTime);
       setSessions(prev => prev + 1);
       setMode('break');
       setTimeLeft(modes.break.duration);
+      alert(`🎉 ${modes[mode].label} 完成！\n\n专注时间：${formatTime(completedTime)}\n\n该休息一下了！`);
     } else if (mode === 'deepwork') {
-      // 记录完成的deepwork时间
       const completedTime = initialTimeRef.current || modes.deepwork.duration;
       setDeepworkTime(prev => prev + completedTime);
       setSessions(prev => prev + 1);
       setMode('break');
       setTimeLeft(modes.break.duration);
+      alert(`🎉 ${modes.deepwork.label} 完成！\n\n深度工作时间：${formatTime(completedTime)}\n\n该休息一下了！`);
     } else {
       setMode('focus');
       setTimeLeft(modes.focus.duration);
+      alert(`✅ ${modes[mode].label} 完成！\n\n准备开始下一个专注时段！`);
     }
     startTimeRef.current = null;
     initialTimeRef.current = null;
+    setHasProgress(false);
     playSound();
   }, [mode]);
 
+  const finishTimer = useCallback(() => {
+    if (initialTimeRef.current === null) return;
+    
+    setIsRunning(false);
+    const completedTime = initialTimeRef.current - timeLeft;
+    
+    if (completedTime > 0) {
+      if (mode === 'focus' || mode === 'short') {
+        setFocusTime(prev => prev + completedTime);
+        setSessions(prev => prev + 1);
+        setMode('break');
+        setTimeLeft(modes.break.duration);
+        alert(`🎉 ${modes[mode].label} 完成！\n\n专注时间：${formatTime(completedTime)}\n\n该休息一下了！`);
+      } else if (mode === 'deepwork') {
+        setDeepworkTime(prev => prev + completedTime);
+        setSessions(prev => prev + 1);
+        setMode('break');
+        setTimeLeft(modes.break.duration);
+        alert(`🎉 ${modes.deepwork.label} 完成！\n\n深度工作时间：${formatTime(completedTime)}\n\n该休息一下了！`);
+      } else {
+        setMode('focus');
+        setTimeLeft(modes.focus.duration);
+        alert(`✅ ${modes[mode].label} 完成！\n\n准备开始下一个专注时段！`);
+      }
+    }
+    
+    startTimeRef.current = null;
+    initialTimeRef.current = null;
+    setHasProgress(false);
+    playSound();
+  }, [mode, timeLeft]);
+
   useEffect(() => {
     if (isRunning && timeLeft > 0) {
-      // 记录开始时间
+      // 如果是第一次启动，记录开始时间和初始时间
       if (!startTimeRef.current) {
         startTimeRef.current = Date.now();
-        initialTimeRef.current = timeLeft;
+        if (initialTimeRef.current === null) {
+          initialTimeRef.current = timeLeft;
+          setHasProgress(true);
+        }
+      } else if (!prevIsRunningRef.current) {
+        // 如果是从暂停恢复（isRunning 从 false 变为 true），调整开始时间以排除暂停的时间
+        // 计算应该已经运行的时间，然后调整开始时间
+        const elapsedSeconds = initialTimeRef.current - timeLeft;
+        startTimeRef.current = Date.now() - elapsedSeconds * 1000;
       }
-      intervalRef.current = setInterval(() => {
-        setTimeLeft(prev => prev - 1);
-      }, 1000);
+      prevIsRunningRef.current = true;
+      
+      // 使用基于时间戳的方式计算剩余时间，避免浏览器最小化时定时器被节流
+      const updateTimer = () => {
+        if (!startTimeRef.current || initialTimeRef.current === null) return;
+        
+        const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+        const remaining = Math.max(0, initialTimeRef.current - elapsed);
+        
+        if (remaining <= 0) {
+          setTimeLeft(0);
+          handleTimerComplete();
+        } else {
+          setTimeLeft(remaining);
+        }
+      };
+      
+      // 立即更新一次
+      updateTimer();
+      
+      // 每100ms检查一次，确保时间准确
+      intervalRef.current = setInterval(updateTimer, 100);
+      
+      // 监听页面可见性变化，当页面重新可见时立即更新
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible' && isRunning) {
+          updateTimer();
+        }
+      };
+      
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      
+      return () => {
+        clearInterval(intervalRef.current);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      };
     } else if (timeLeft === 0) {
       handleTimerComplete();
+      prevIsRunningRef.current = false;
     } else {
-      // 暂停时重置开始时间
-      startTimeRef.current = null;
-      initialTimeRef.current = null;
+      // 暂停时，清理定时器，但保留 startTimeRef 和 initialTimeRef
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      prevIsRunningRef.current = false;
     }
-    return () => clearInterval(intervalRef.current);
   }, [isRunning, timeLeft, handleTimerComplete]);
 
   const playSound = () => {
@@ -149,10 +222,10 @@ export default function DevFocusTimer() {
     setTimeLeft(modes[mode].duration);
     startTimeRef.current = null;
     initialTimeRef.current = null;
+    setHasProgress(false);
   };
 
   const switchMode = (newMode) => {
-    // 切换模式时，如果正在运行，先保存当前已完成的进度
     if (isRunning && initialTimeRef.current !== null) {
       const elapsed = initialTimeRef.current - timeLeft;
       if (elapsed > 0) {
@@ -168,6 +241,7 @@ export default function DevFocusTimer() {
     setIsRunning(false);
     startTimeRef.current = null;
     initialTimeRef.current = null;
+    setHasProgress(false);
   };
 
   const formatTime = (seconds) => {
@@ -175,19 +249,6 @@ export default function DevFocusTimer() {
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
-
-  // 格式化小时和分钟
-  const formatHours = (seconds) => {
-    const hours = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    if (hours > 0) {
-      return `${hours}h ${mins}m`;
-    }
-    return `${mins}m`;
-  };
-
-  // 计算总专注时间
-  const totalFocusTime = focusTime + deepworkTime;
 
   const logDistraction = () => {
     const timestamp = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
@@ -247,6 +308,15 @@ export default function DevFocusTimer() {
               <RotateCcw size={24} />
               Reset
             </button>
+            {hasProgress && timeLeft < modes[mode].duration && (
+              <button
+                onClick={finishTimer}
+                className="bg-green-600 hover:bg-green-700 px-8 py-4 rounded-lg font-semibold flex items-center gap-2 transition-all"
+              >
+                <CheckCircle size={24} />
+                Finish
+              </button>
+            )}
           </div>
 
           {/* Task Input */}
@@ -267,26 +337,6 @@ export default function DevFocusTimer() {
           >
             Log Distraction (caught myself!)
           </button>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-slate-800 rounded-lg p-4 text-center">
-            <div className="text-3xl font-bold text-blue-400">{sessions}</div>
-            <div className="text-slate-400 text-sm">Sessions</div>
-          </div>
-          <div className="bg-slate-800 rounded-lg p-4 text-center">
-            <div className="text-2xl font-bold text-green-400">{formatHours(totalFocusTime)}</div>
-            <div className="text-slate-400 text-sm">Total Focus</div>
-          </div>
-          <div className="bg-slate-800 rounded-lg p-4 text-center">
-            <div className="text-2xl font-bold text-purple-400">{formatHours(deepworkTime)}</div>
-            <div className="text-slate-400 text-sm">Deep Work</div>
-          </div>
-          <div className="bg-slate-800 rounded-lg p-4 text-center">
-            <div className="text-3xl font-bold text-yellow-400">{distractions.length}</div>
-            <div className="text-slate-400 text-sm">Distractions</div>
-          </div>
         </div>
 
         {/* Distraction Log */}
